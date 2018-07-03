@@ -1573,6 +1573,11 @@ int pico_ppoll(struct pollfd *pfd, nfds_t npfd, const struct timespec *timeout, 
         } /* End for loop */
         if ((ret == 0) && timeout && (pico_signal_wait_timeout(pico_signal_select, (timeout->tv_sec * 1000) + ((timeout->tv_nsec) / 1000000)) == -1))
                 return 0; /* Timeout */
+
+        /* Hack: picoTCP expects interrupts to arrive inside this loop so that ppoll can eventually progress.
+         * Emulate this behaviour by forcing a tick of the picoTCP stack here */
+        pico_bsd_stack_tick();
+
     } /* End while loop */
     return ret;
 }
